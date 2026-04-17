@@ -1,0 +1,11 @@
+{
+  "name": "SynthaCarbon AI",
+  "description": "Smart Mobility & Green Horizon Platform for site vehicle monitoring and CO2 emission tracking.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "vision",
+    "chat"
+  ]
+}
