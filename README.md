@@ -1,4 +1,4 @@
-> **AI Disclosure:** This project was developed with the assistance of Google Gemini and Claude. AI was utilized to assist in structuring the YOLOv11 detection loop, debugging the Dialogflow CX integration, and optimizing the backend server architecture. All AI-assisted code has been manually reviewed, tested, and refined by the team.
+> **AI Disclosure:** This project was developed with the assistance of Google AI Studio and Claude for debug. AI was utilized to assist in structuring the YOLOv11 detection loop, debugging the Dialogflow CX integration, and optimizing the backend server architecture. All AI-assisted code has been manually reviewed, tested, and refined by the team.
 
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
