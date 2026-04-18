@@ -1,60 +1,47 @@
-# AI Disclosure: This project was developed with the assistance of Google Gemini and Claude. AI was utilized to assist in structuring the YOLOv11 detection loop, debugging the Dialogflow CX integration, and optimizing the backend server architecture. All AI-assisted code has been manually reviewed, tested, and refined by the team.
-
-
+> **AI Disclosure:** This project was developed with the assistance of Google Gemini and Claude. AI was utilized to assist in structuring the YOLOv11 detection loop, debugging the Dialogflow CX integration, and optimizing the backend server architecture. All AI-assisted code has been manually reviewed, tested, and refined by the team.
 
 <div align="center">
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
-
-# Run and deploy your AI Studio app
-
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/d8b50c5c-e6c0-46e7-973d-bad8bd69d529
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
-
 
 # SynthaCarbon AI
 
-> Smart Mobility & Green Horizon Platform — real-time construction site vehicle monitoring and CO₂ emission auditing powered by on-device YOLO inference and Google AI.
+**Smart Mobility & Green Horizon Platform**
 
-![Phase 02](https://img.shields.io/badge/Phase-02-blue) ![Audit Active](https://img.shields.io/badge/Audit-Active-green) ![License](https://img.shields.io/badge/License-Private-red)
+Real-time construction site vehicle monitoring and CO₂ emission auditing — powered by on-device YOLO inference and Google AI.
+
+![Phase 02](https://img.shields.io/badge/Phase-02-blue)
+![Audit Active](https://img.shields.io/badge/Audit-Active-green)
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178c6?logo=typescript)
+![License](https://img.shields.io/badge/License-Private-red)
+
+</div>
 
 ---
 
 ## Overview
 
-SynthaCarbon AI is a browser-based infrastructure monitoring platform designed for construction sites. It ingests video or image footage, runs on-device vehicle detection using a custom YOLOv8/YOLOv11 ONNX model, computes real-time CO₂ emission estimates, and dispatches AI-generated intervention commands when heavy diesel traffic exceeds regulatory thresholds.
+SynthaCarbon AI is a browser-based infrastructure monitoring platform built for construction sites. It ingests video or image footage, runs on-device vehicle detection using a custom YOLOv8/YOLOv11 ONNX model, computes real-time CO₂ emission estimates, and dispatches AI-generated intervention commands when heavy diesel traffic exceeds regulatory thresholds.
 
-The system is built around three pillars:
+The system is built around three core pillars:
 
-- **Local ONNX inference** — vehicle detection runs entirely in the browser via ONNX Runtime Web (WebAssembly), with no data leaving the device
-- **AI Dispatch Commander** — a Gemini-powered or Dialogflow CX-powered agent that generates authoritative situation reports citing Malaysian environmental legislation
-- **Eco-Path Corridor Map** — a live visual of the R&R Skudai corridor that reacts to detected vehicle counts and triggers traffic signal changes
+- **Local ONNX Inference** — vehicle detection runs entirely in the browser via ONNX Runtime Web (WebAssembly). No footage leaves the device.
+- **AI Dispatch Commander** — a Gemini-powered or Dialogflow CX-powered agent that generates authoritative situation reports citing Malaysian environmental legislation.
+- **Eco-Path Corridor Map** — a live visual of the R&R Skudai corridor that reacts to detected vehicle counts and triggers traffic signal changes.
 
 ---
 
 ## Features
 
-- Upload video (`.mp4`) or image (`.png`, `.webp`, `.jpg`) site footage
-- Real-time bounding box overlay on detected vehicles with class label and confidence score
-- Per-frame inference during video playback — boxes update as the video plays
-- CO₂ emission estimation based on vehicle class emission factors
-- Live emission analytics chart that grows with video duration
-- Heavy diesel threshold monitoring — triggers GREEN LIGHT grid intervention protocol above 3 heavy units
-- AI Dispatch Center with Gemini fallback if Dialogflow is unavailable
-- Animated Eco-Path Corridor Map with tactical traffic lights
-- Toggle between Local Model (ONNX) and Gemini Vision AI detection modes
+- Upload `.mp4` video or `.png` / `.webp` / `.jpg` image footage from a construction site
+- Real-time bounding box overlay with class label and confidence score
+- Per-frame inference during video playback — boxes update live as the video plays
+- CO₂ emission estimation based on per-vehicle-class emission factors
+- Emission analytics chart that grows in real time with video duration
+- Heavy diesel threshold monitoring — triggers the **GREEN LIGHT grid intervention protocol** when more than 3 heavy units are detected
+- AI Dispatch Center with automatic Gemini fallback if Dialogflow CX is unavailable
+- Animated Eco-Path Corridor Map with tactical traffic light simulation
+- Toggle between **Local Model (ONNX)** and **Gemini Vision AI** detection modes
 
 ---
 
@@ -62,13 +49,13 @@ The system is built around three pillars:
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, TypeScript, Vite 6 |
+| Frontend | React 19, TypeScript 5.8, Vite 6 |
 | Styling | Tailwind CSS v4 |
 | Animation | Motion (Framer Motion) |
 | Charts | Recharts |
 | Icons | Lucide React |
 | On-device inference | ONNX Runtime Web (WASM) |
-| AI Vision fallback | Google Gemini (`gemini-3-flash-preview`) |
+| AI Vision fallback | Google Gemini (`gemini-2.5-flash-preview`) |
 | AI Dispatch | Google Dialogflow CX |
 | Backend | Express + tsx |
 | Model training | YOLOv8/YOLOv11 → exported to ONNX |
@@ -80,7 +67,7 @@ The system is built around three pillars:
 ```
 synthacarbon-ai/
 ├── public/
-│   └── best.onnx              # Trained ONNX model (place here for Vite to serve)
+│   └── best.onnx              # Trained ONNX model (served by Vite at /best.onnx)
 ├── src/
 │   ├── App.tsx                # Main UI — upload, detection, metrics, map
 │   ├── main.tsx               # React entry point
@@ -92,6 +79,7 @@ synthacarbon-ai/
 │       └── utils.ts           # Tailwind cn() utility
 ├── server.ts                  # Express server + Dialogflow CX dispatch endpoint
 ├── best.pt                    # PyTorch model weights (for re-export only)
+├── metadata.json              # App metadata and capability declarations
 ├── .env                       # Environment variables (never commit)
 ├── .env.example               # Example env file
 ├── .gitignore
@@ -104,10 +92,10 @@ synthacarbon-ai/
 
 ## Prerequisites
 
-- Node.js 18+
-- A Google Cloud project with Dialogflow CX enabled (optional — Gemini fallback is used if unavailable)
-- A Gemini API key from [Google AI Studio](https://aistudio.google.com)
-- Python 3.8+ with `ultralytics` installed (only needed to re-export the ONNX model)
+- **Node.js 18+**
+- A **Gemini API key** from [Google AI Studio](https://aistudio.google.com)
+- A **Google Cloud project** with Dialogflow CX enabled *(optional — Gemini fallback is used if unavailable)*
+- **Python 3.8+** with `ultralytics` installed *(only required to re-export the ONNX model)*
 
 ---
 
@@ -133,7 +121,7 @@ cp .env.example .env
 # Required — Gemini API key for Vision AI and Commander fallback
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Optional — Dialogflow CX (if not set, Gemini Commander is used)
+# Optional — Dialogflow CX (if not set, Gemini Commander is used instead)
 DIALOGFLOW_PROJECT_ID=your-gcp-project-id
 DIALOGFLOW_LOCATION=global
 DIALOGFLOW_AGENT_ID=your-dialogflow-agent-id
@@ -163,7 +151,7 @@ If using Dialogflow CX, place your Google Cloud service account JSON at the proj
 synthacarbon-ai/service-account-key.json
 ```
 
-> ⚠️ This file is listed in `.gitignore` and must never be committed to version control.
+> ⚠️ This file is listed in `.gitignore` and must **never** be committed to version control.
 
 ### 5. Run the development server
 
@@ -171,28 +159,30 @@ synthacarbon-ai/service-account-key.json
 npm run dev
 ```
 
-The app will be available at `http://localhost:3000`.
+The app will be available at `http://localhost:8080`.
 
 ---
 
 ## Usage
 
 1. Open the app in your browser
-2. Select detection mode — **Local Model (best.onnx)** runs entirely in-browser; **Gemini Vision AI** sends frames to the Gemini API
-3. Click the upload zone and select a video or image file from a construction site
+2. Select a detection mode:
+   - **Local Model (best.onnx)** — runs entirely in-browser via WebAssembly; no data is sent externally
+   - **Gemini Vision AI** — sends frames to the Gemini API for cloud-based detection
+3. Click the upload zone and select a video (`.mp4`) or image (`.png`, `.jpg`, `.webp`) from a construction site
 4. The system will:
-   - Display the footage in the Perception Preview panel
+   - Display the footage in the **Perception Preview** panel
    - Overlay bounding boxes with class labels and confidence scores
-   - Update the Emission Analytics chart in real time as the video plays
-   - Count heavy diesel units and trigger the GREEN LIGHT intervention protocol if the count exceeds 3
-   - Generate an AI Dispatch Commander report in the right panel
-   - Animate the Eco-Path Corridor Map and traffic signals based on the intervention status
+   - Update the **Emission Analytics** chart in real time as the video plays
+   - Count heavy diesel units and trigger the **GREEN LIGHT intervention protocol** if the count exceeds 3
+   - Generate an **AI Dispatch Commander** report in the right panel
+   - Animate the **Eco-Path Corridor Map** and traffic signals based on the intervention status
 
 ---
 
 ## Vehicle Classes & Emission Factors
 
-The model detects four vehicle classes. Emission factors are used to estimate CO₂ intensity:
+The model detects four heavy vehicle classes. Emission factors are used to estimate CO₂ intensity per hour of operation:
 
 | Class | Emission Factor |
 |---|---|
@@ -211,13 +201,13 @@ All four classes are treated as heavy diesel for the intervention threshold calc
 Upload / Video frame
         │
         ▼
-  extractFrameFromVideo()        ← for video uploads: seeks to t=1s
+  extractFrameFromVideo()        ← for video: seeks to t=1s for initial frame
         │
         ▼
   preprocessSource()             ← resize to 640×640, RGB planar Float32
         │
         ▼
-  ONNX Runtime (WASM)            ← runs best.onnx in-browser
+  ONNX Runtime (WASM)            ← runs best.onnx in-browser, no server needed
         │
         ▼
   parseOutput()                  ← decode [1, 8, N] tensor → raw detections
@@ -295,7 +285,7 @@ The GREEN LIGHT protocol is justified by the **Restart Penalty** — stationary 
 
 - Never commit `.env`, `service-account-key.json`, or any API keys
 - The `.gitignore` excludes both files by default
-- The Gemini API key is injected at build time via Vite's `define` — it will be visible in the browser bundle, so use a restricted key scoped to your domain in production
+- The Gemini API key is injected at build time via Vite's `define` — it will be visible in the browser bundle. In production, use a restricted key scoped to your domain.
 
 ---
 
