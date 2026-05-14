@@ -6,11 +6,11 @@ ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
 let session: ort.InferenceSession | null = null;
 
 const MODEL_SIZE = 640;
-const CONFIDENCE_THRESHOLD = 0.35;
+const CONFIDENCE_THRESHOLD = 0.65;
 const IOU_THRESHOLD = 0.45;
 const DETECT_INTERVAL_MS = 500;
 
-// Must match: {0:'crane',1:'excavator',2:'tractor',3:'truck'}
+// Must match best.pt: {0:'crane', 1:'excavator', 2:'tractor', 3:'truck'}
 const classes = ['crane', 'excavator', 'tractor', 'truck'];
 
 async function ensureSession(): Promise<ort.InferenceSession> {
@@ -19,8 +19,12 @@ async function ensureSession(): Promise<ort.InferenceSession> {
       executionProviders: ['wasm'],
       graphOptimizationLevel: 'all',
     });
-    console.log('[YOLO] Loaded /best.onnx', session.inputNames, session.outputNames);
+
+    console.log('[YOLO] Loaded /best.onnx');
+    console.log('[YOLO] Inputs:', session.inputNames);
+    console.log('[YOLO] Outputs:', session.outputNames);
   }
+
   return session;
 }
 
@@ -49,8 +53,10 @@ function iou(a: number[], b: number[]): number {
   const y1 = Math.max(a[1], b[1]);
   const x2 = Math.min(a[0] + a[2], b[0] + b[2]);
   const y2 = Math.min(a[1] + a[3], b[1] + b[3]);
+
   const inter = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
   const union = a[2] * a[3] + b[2] * b[3] - inter;
+
   return union <= 0 ? 0 : inter / union;
 }
 
@@ -59,12 +65,15 @@ function applyNMS(detections: VehicleDetection[]): VehicleDetection[] {
   const kept: VehicleDetection[] = [];
 
   for (const det of sorted) {
-    if (!kept.some((k) => iou(det.bbox, k.bbox) > IOU_THRESHOLD)) {
-      kept.push(det);
-    }
+    const shouldSuppress = kept.some((existing) => iou(det.bbox, existing.bbox) > IOU_THRESHOLD);
+    if (!shouldSuppress) kept.push(det);
   }
 
   return kept;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }
 
 function parseOutput(output: ort.Tensor): VehicleDetection[] {
@@ -73,9 +82,17 @@ function parseOutput(output: ort.Tensor): VehicleDetection[] {
 
   const raw: VehicleDetection[] = [];
 
-  const channelsFirst = dims.length === 3 && dims[1] <= 20;
+  if (dims.length !== 3) {
+    console.warn('[YOLO] Unsupported output shape:', dims);
+    return [];
+  }
+
+  const channelsFirst = dims[1] <= 20;
   const numDetections = channelsFirst ? dims[2] : dims[1];
   const numValues = channelsFirst ? dims[1] : dims[2];
+
+  const hasObjectness = numValues === classes.length + 5;
+  const classOffset = hasObjectness ? 5 : 4;
 
   for (let i = 0; i < numDetections; i++) {
     const get = (channel: number) => {
@@ -84,11 +101,14 @@ function parseOutput(output: ort.Tensor): VehicleDetection[] {
         : data[i * numValues + channel];
     };
 
+    const objectness = hasObjectness ? get(4) : 1;
+
     let maxScore = 0;
     let classId = -1;
 
     for (let c = 0; c < classes.length; c++) {
-      const score = get(4 + c);
+      const score = objectness * get(classOffset + c);
+
       if (score > maxScore) {
         maxScore = score;
         classId = c;
@@ -102,14 +122,19 @@ function parseOutput(output: ort.Tensor): VehicleDetection[] {
     const w = get(2);
     const h = get(3);
 
+    const left = ((cx - w / 2) / MODEL_SIZE) * 100;
+    const top = ((cy - h / 2) / MODEL_SIZE) * 100;
+    const width = (w / MODEL_SIZE) * 100;
+    const height = (h / MODEL_SIZE) * 100;
+
     raw.push({
       class: classes[classId] as VehicleDetection['class'],
       confidence: maxScore,
       bbox: [
-        ((cx - w / 2) / MODEL_SIZE) * 100,
-        ((cy - h / 2) / MODEL_SIZE) * 100,
-        (w / MODEL_SIZE) * 100,
-        (h / MODEL_SIZE) * 100,
+        clamp(left, 0, 100),
+        clamp(top, 0, 100),
+        clamp(width, 0, 100),
+        clamp(height, 0, 100),
       ],
     });
   }
@@ -134,6 +159,7 @@ function drawDetections(
     const y = (det.bbox[1] / 100) * displayH;
     const w = (det.bbox[2] / 100) * displayW;
     const h = (det.bbox[3] / 100) * displayH;
+
     const label = `${det.class.toUpperCase()} ${Math.round(det.confidence * 100)}%`;
 
     ctx.strokeStyle = '#00E676';
@@ -141,12 +167,14 @@ function drawDetections(
     ctx.strokeRect(x, y, w, h);
 
     ctx.font = 'bold 14px monospace';
-    const textW = ctx.measureText(label).width + 10;
+    const textWidth = ctx.measureText(label).width + 10;
+    const labelY = Math.max(0, y - 22);
+
     ctx.fillStyle = '#00E676';
-    ctx.fillRect(x, Math.max(0, y - 22), textW, 22);
+    ctx.fillRect(x, labelY, textWidth, 22);
 
     ctx.fillStyle = '#000000';
-    ctx.fillText(label, x + 5, Math.max(14, y - 6));
+    ctx.fillText(label, x + 5, labelY + 16);
   }
 }
 
@@ -164,15 +192,18 @@ export async function detectWithYOLO(
 
     const image = new Image();
     image.src = `data:${mimeType};base64,${base64Image}`;
-    await new Promise((resolve) => {
+
+    await new Promise((resolve, reject) => {
       image.onload = resolve;
+      image.onerror = reject;
     });
 
     const tensor = preprocessSource(image);
     const outputs = await sess.run({ [sess.inputNames[0]]: tensor });
+
     return parseOutput(outputs[sess.outputNames[0]]);
   } catch (error) {
-    console.error('[YOLO] Inference error:', error);
+    console.error('[YOLO] Image inference error:', error);
     return [];
   }
 }
@@ -190,7 +221,9 @@ async function extractFrameFromVideo(base64: string, mimeType: string): Promise<
         const canvas = document.createElement('canvas');
         canvas.width = MODEL_SIZE;
         canvas.height = MODEL_SIZE;
+
         canvas.getContext('2d')!.drawImage(video, 0, 0, MODEL_SIZE, MODEL_SIZE);
+
         resolve(canvas.toDataURL('image/jpeg').split(',')[1]);
       },
       { once: true }
@@ -225,6 +258,7 @@ export function startVideoDetection(
         const sess = await ensureSession();
         const tensor = preprocessSource(videoEl);
         const outputs = await sess.run({ [sess.inputNames[0]]: tensor });
+
         lastDetections = parseOutput(outputs[sess.outputNames[0]]);
         onDetect?.(lastDetections);
       } catch (error) {
@@ -246,6 +280,7 @@ export function startVideoDetection(
   return () => {
     active = false;
     cancelAnimationFrame(rafId);
+
     const ctx = overlayCanvas.getContext('2d');
     ctx?.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
   };
