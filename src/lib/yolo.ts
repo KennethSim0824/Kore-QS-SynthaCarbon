@@ -6,7 +6,7 @@ ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/';
 let session: ort.InferenceSession | null = null;
 
 const MODEL_SIZE = 640;
-const CONFIDENCE_THRESHOLD = 0.65;
+const CONFIDENCE_THRESHOLD = 0.50;
 const IOU_THRESHOLD = 0.45;
 const DETECT_INTERVAL_MS = 500;
 
