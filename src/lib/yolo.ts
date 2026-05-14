@@ -7,7 +7,7 @@ let session: ort.InferenceSession | null = null;
 const MODEL_SIZE = 640;
 const CONFIDENCE_THRESHOLD = 0.45;
 const IOU_THRESHOLD = 0.45;
-const classes = ['excavator', 'tractor', 'truck', 'crane'];
+const classes = ['crane', 'excavator', 'tractor', 'truck'];
 
 // ─── SESSION LOADER ────────────────────────────────────────────────────────
 async function ensureSession(): Promise<ort.InferenceSession> {
